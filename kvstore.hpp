@@ -5,12 +5,13 @@ namespace my_reactor {
     struct conn_item;
 }
 
-void kv_request(const my_reactor::conn_item& it);
+void kv_request(my_reactor::conn_item& it);
 
 static std::unordered_map<std::string, std::string> store;
 
 bool kvstore_set(const std::string& key, const std::string& value) {
-    return true;
+    auto ret = store.emplace(key, value);
+    return ret.second;
 }
 
 auto kvstore_get(const std::string& key) -> decltype(store[key]) {

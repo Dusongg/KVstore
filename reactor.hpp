@@ -101,6 +101,7 @@ namespace my_reactor {
     private:
         reactor() {}
 
+
         static int accept_cb(reactor* ts, int) {
             struct sockaddr_in clientaddr;
             socklen_t len = sizeof(clientaddr);
@@ -123,9 +124,9 @@ namespace my_reactor {
         }
         static int receive_cb(reactor* ts, int fd) {
             char* buffer = ts->connlist[fd].rbuffer;
-            int idx = ts->connlist[fd].rlen;
 
-            int cnt = recv(fd, buffer + idx, BUFFER_LENGTH - idx, 0);
+            int cnt = recv(fd, buffer, BUFFER_LENGTH, 0);
+            buffer[cnt] = 0;
             // std::cout << buffer << std::endl;        //打印接收到的数据
 
             if (cnt == 0) {
@@ -136,51 +137,16 @@ namespace my_reactor {
             }
             ts->connlist[fd].rlen = cnt;
 
-
              kv_request(ts->connlist[fd]);
 
             ts->set_event(fd, EPOLLOUT, EPOLL_CTL_MOD);
             return cnt;
         }
         static int send_cb(reactor* ts, int fd) {
-#if 0
-            /*  求文件内容长度
-            std::ifstream in(htmlpath, std::ios::binary);
-            if(!in.is_open()) return "";
-
-            in.seekg(0, std::ios_base::end);
-            auto len = in.tellg();
-            in.seekg(0, std::ios_base::beg);
-            */
-#else 
-        //wrk测试时段错误  : 原因大概出在open函数和stat上
-        //    int filefd = open(HTMLPATH, O_RDONLY);
-
-        //    off_t offset = 0;   //当前读到的偏移量
-        //    struct stat stat_buf;
-        //    fstat(filefd, &stat_buf);
-        //    off_t size = stat_buf.st_size;
-
-        //     while(offset < size) {
-        //         ssize_t send_bytes = sendfile(fd, filefd, &offset, BUFFER_LENGTH);
-        //         if (send_bytes < 0) {
-        //             perror("sendfile failed");
-        //             return 1;
-        //         }
-        //     }
-        //   close(filefd);
-#endif
-            ts->connlist[fd].wlen = sprintf(ts->connlist[fd].wbuffer, 
-            "HTTP/1.1 200 OK\r\n"
-            "Accept-Ranges: bytes\r\n"
-            "Content-Length: 82\r\n"
-            "Content-Type: text/html\r\n"
-            "Date: Sat, 06 Aug 2023 13:16:46 GMT\r\n\r\n"
-            "<html><head><title>test</title></head><body><h1>test</h1></body></html>\r\n\r\n");
             int send_len = send(fd, ts->connlist[fd].wbuffer, ts->connlist[fd].wlen, 0);
+            ts->connlist[fd].wlen = 0;
             ts->set_event(fd, EPOLLIN, EPOLL_CTL_MOD);
             return send_len;
-
         }
 
         void set_event(int fd, EPOLL_EVENTS event, int op) { 
@@ -192,7 +158,6 @@ namespace my_reactor {
 
 
     private:   
-        reactor() = default;
         int sockfd;
         int epfd;
         struct epoll_event events[MAX_EVENTS_SIZE] = {0};
