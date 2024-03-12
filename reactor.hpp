@@ -48,15 +48,11 @@ namespace my_reactor {
     };  
     class reactor {
     public:
-        static reactor* get_Singleton() {
-            if (singleton == nullptr) {
-                singleton = new reactor();
-                return singleton;
-            } else {
-                return singleton;
-            }
+        static reactor& get_Singleton() {
+            static reactor singleton;
+            return singleton;
         }
-        ~reactor() { std::cout << "~reactor" << std::endl; }
+        ~reactor() = default;
         reactor(const reactor&) = delete;
         reactor& opeator(const reactor&) = delete;
         int init() {
@@ -127,7 +123,7 @@ namespace my_reactor {
         }
         static int receive_cb(reactor* ts, int fd) {
             char* buffer = ts->connlist[fd].rbuffer;
-            int idx = ts->connlist[fd].rlen;    
+            int idx = ts->connlist[fd].rlen;
 
             int cnt = recv(fd, buffer + idx, BUFFER_LENGTH - idx, 0);
             // std::cout << buffer << std::endl;        //打印接收到的数据
@@ -138,7 +134,7 @@ namespace my_reactor {
                 close(fd);
                 return -1;
             }
-            ts->connlist[fd].rlen += cnt;
+            ts->connlist[fd].rlen = cnt;
 
 
              kv_request(ts->connlist[fd]);
@@ -195,12 +191,11 @@ namespace my_reactor {
         }
 
 
-    private:
-        static reactor* singleton;
+    private:   
+        reactor() = default;
         int sockfd;
         int epfd;
         struct epoll_event events[MAX_EVENTS_SIZE] = {0};
         conn_item connlist[MAX_EVENTS_SIZE];
     };
-    reactor* reactor::singleton = nullptr;
 }
