@@ -19,14 +19,14 @@
 
 #include <iostream>
 
-#include "kvstore.hpp"
+#include "../kvstore.hpp"
 
 #define BUFFER_LENGTH 1024
 #define MAX_EVENTS_SIZE 1024
 #define PORT 8888
 #define HTMLPATH "./root/index.html"
 
-namespace my_reactor {
+namespace ns_reactor {
     class reactor;
     struct conn_item {
         conn_item() {};
@@ -137,8 +137,9 @@ namespace my_reactor {
             }
             ts->connlist[fd].rlen = cnt;
 
-             kv_request(ts->connlist[fd]);
+            reactor_kv_request<conn_item>(ts->connlist[fd]);
 
+            ts->connlist[fd].wlen = strlen(ts->connlist[fd].wbuffer);
             ts->set_event(fd, EPOLLOUT, EPOLL_CTL_MOD);
             return cnt;
         }
