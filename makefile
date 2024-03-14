@@ -1,5 +1,5 @@
 CC = g++
-FLAGS = -std=c++20
+FLAGS = -std=c++20 -luring -static
 SRCS = kvstore.cc server.cc
 TARGET = kvserver
 OBJS = $(SRCS:.cc=.o)

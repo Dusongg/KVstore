@@ -1,9 +1,13 @@
+#pragma once
 #include "kvstore.hpp"
 
+#include <vector>
+#include <string>
+#include <sstream>
 
-template<typename T>
-void kv_request(T& it);
 
+
+static std::unordered_map<std::string, std::string> store;
 
 bool kvstore_set(const std::string& key, const std::string& value) {
     auto ret = store.emplace(key, value);
@@ -40,3 +44,14 @@ bool kvstore_mod(const std::string& key, const std::string& value) {
     store[key] = value;
     return true;
 }
+
+std::vector<std::string> kvstore_spilit(const char* msg) {
+    std::stringstream input(msg);
+    std::vector<std::string> ret;
+    std::string token;
+    while(input >> token) {
+        ret.push_back(token);
+    }
+    return ret;
+}
+

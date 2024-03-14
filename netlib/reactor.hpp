@@ -74,7 +74,6 @@ namespace ns_reactor {
                 return -1;
             }
 
-            
             listen(sockfd, 10);
 
             this->epfd = epoll_create(1);
@@ -126,6 +125,7 @@ namespace ns_reactor {
             char* buffer = ts->connlist[fd].rbuffer;
 
             int cnt = recv(fd, buffer, BUFFER_LENGTH, 0);
+            //导致get出错
             buffer[cnt] = 0;
             // std::cout << buffer << std::endl;        //打印接收到的数据
 
@@ -137,9 +137,9 @@ namespace ns_reactor {
             }
             ts->connlist[fd].rlen = cnt;
 
-            reactor_kv_request<conn_item>(ts->connlist[fd]);
-
+            kv_request<conn_item>(ts->connlist[fd]);
             ts->connlist[fd].wlen = strlen(ts->connlist[fd].wbuffer);
+
             ts->set_event(fd, EPOLLOUT, EPOLL_CTL_MOD);
             return cnt;
         }
